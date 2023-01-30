@@ -14,5 +14,4 @@ public class MockBank {
         // TODO: Implement actual logic with different scenario here instead of hardcoded happy path.
         return ResponseEntity.ok(new ProcessPaymentResponse(ProcessPaymentRequest.getPaymentId(), PAYMENT_STATUS_PROCESSING));
     }
-
 }

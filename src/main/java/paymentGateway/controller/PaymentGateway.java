@@ -91,7 +91,7 @@ public class PaymentGateway {
         ProcessPaymentRequest processPaymentRequest = toProcessPaymentRequest(paymentCard, paymentRequest, paymentId);
         HttpEntity<ProcessPaymentRequest> postRequest = new HttpEntity<>(processPaymentRequest);
         // TODO: Return the response from the mock bank and use in the main method to update the payment record.
-        ResponseEntity<String> response = restTemplate.postForEntity(URI, postRequest, String.class);
+        ResponseEntity<String> response = this.restTemplate.postForEntity(URI, postRequest, String.class);
         return response.getBody();
     }
 }
