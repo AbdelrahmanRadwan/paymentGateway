@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Integer> {
-    List<Card> findByMerchantIdAndUserId(final String merchantId, final String userId);
+    List<Payment> findByMerchantIdAndUserId(final String merchantId, final String userId);
 }

@@ -1,19 +1,18 @@
-version: '3.7'
+version: '3.1'
 services:
   app:
-    container_name: springboot-postgresql
-    image: springboot-postgresql
-    build: ./
+    container_name: paymentgateway
+    image: paymentgateway
+    build: .
     ports:
       - "8080:8080"
     depends_on:
-      - postgresqldb
-  postgresqldb:
-    image: postgres:10.5
-    restart: always
+      - postgres
+  postgres:
+    image: postgres
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_PASSWORD=test
       - POSTGRES_USER=test
-      - POSTGRES_DB=payments
+      - POSTGRES_DB=postgres

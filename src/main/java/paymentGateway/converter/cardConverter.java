@@ -7,7 +7,6 @@ import java.util.Date;
 
 public class cardConverter {
     public static String DISPLAY_CARD_NUMBER_FORMAT = "**** **** **** %s";
-    public static String PAYMENT_STATUS_PROCESSING = "PROCESSING";
 
     public static Card toCard(final CardRequest cardRequest, final String merchantId, final String userId) {
         return Card.builder()
@@ -29,7 +28,7 @@ public class cardConverter {
                 .displayCardNumber(card.getDisplayCardNumber())
                 .build();
     }
-    public static Payment toPayment(final PaymentRequest paymentRequest, final String merchantId, final String userId) {
+    public static Payment toPayment(final PaymentRequest paymentRequest, final String merchantId, final String userId, final String paymentStatus) {
         return Payment.builder()
                 .amount(paymentRequest.getAmount())
                 .currency(paymentRequest.getCurrency())
@@ -37,7 +36,7 @@ public class cardConverter {
                 .userId(userId)
                 .cardId(paymentRequest.getCardId())
                 .createdAt(Date.from(Instant.now()))
-                .paymentStatus(PAYMENT_STATUS_PROCESSING)
+                .paymentStatus(paymentStatus)
                 .build();
     }
 
@@ -49,6 +48,21 @@ public class cardConverter {
                 .cardId(payment.getCardId())
                 .createdAt(payment.getCreatedAt())
                 .paymentStatus(payment.getPaymentStatus())
+                .build();
+    }
+
+    public static ProcessPaymentRequest toProcessPaymentRequest(final Card paymentCard, final PaymentRequest paymentRequest, final Integer paymentId) {
+        return ProcessPaymentRequest.builder()
+                .paymentId(paymentId)
+                .merchantId(paymentCard.getMerchantId())
+                .userId(paymentCard.getUserId())
+                .cardNumber(paymentCard.getCardNumber())
+                .cvv(paymentCard.getCvv())
+                .displayName(paymentCard.getDisplayName())
+                .expMonth(paymentCard.getExpMonth())
+                .expYear(paymentCard.getExpYear())
+                .amount(paymentRequest.getAmount())
+                .currency(paymentRequest.getCurrency())
                 .build();
     }
 }
