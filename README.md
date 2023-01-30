@@ -8,6 +8,12 @@
 | Mock Bank                                | Bank response is mocked through another API running locally that provides promises with the payment status                                      |
 
 
+# High Level Design
+![High Level System Architecture ](documentation/PaymentGatewayWithAsyncPaymentState.png)
+[View on LucidChart](https://lucid.app/lucidchart/94ad9f2d-40c3-4884-af47-e7d424349f3f/edit?viewport_loc=-287%2C-295%2C3675%2C1857%2C0_0&invitationId=inv_8e6fe67f-73b1-4f02-8e67-902d77fd4dba)
+
+For the sake of simplicity, There is no queue integration in the current implementation. Howeverm, there is a simple mocked response that is being sent through a mockBank API.
+
 ----------------------------------------------------------------
 
 # Motivation
@@ -124,6 +130,7 @@ POST http://localhost:8080/api/payment/merchant/{merchantId}/user/{userId}
 This endpoint is making a request to another endpoint to mock the bank, which returns a promise.
 
 ## Mock Bank
+The mock bank API is supposed to return a promise or a completableFuture response since it could takek long to process. In the current implementation, it only returns mocked value for simplicity. In real life, I would have done this using a queue system similar to what is described in the high level design above.
 
 ----------------------------------------------------------------
 # Proposed System Architecture
