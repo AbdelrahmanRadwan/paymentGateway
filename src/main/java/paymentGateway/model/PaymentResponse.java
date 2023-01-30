@@ -16,6 +16,6 @@ public class PaymentResponse {
     private Integer cardId;
     private String merchantId;
     private String userId;
-    private Date createdAt;
+    private Date createdAt; // TODO: Add updated at as well
     private String paymentStatus;
 }

@@ -1,5 +1,7 @@
 package paymentGateway.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -33,6 +35,9 @@ public class PaymentGateway {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @GetMapping("/payment/merchant/{merchantId}/user/{userId}")
     public ResponseEntity<List<PaymentResponse>> getAllPaymentsByMerchantAndUser(final @PathVariable String merchantId,
                                                                                  final @PathVariable String userId) {
@@ -51,10 +56,18 @@ public class PaymentGateway {
             return ResponseEntity.badRequest().build();
         }
         // Store the payment and generate payment ID
-        PaymentResponse paymentResponse = toPaymentResponse(paymentRepository.save(toPayment(paymentRequest, merchantId, userId, PAYMENT_STATUS_INITIALIZED)));
+        Payment storedPayment = paymentRepository.save(toPayment(paymentRequest, merchantId, userId, PAYMENT_STATUS_INITIALIZED));
+        PaymentResponse paymentResponse = toPaymentResponse(storedPayment);
         // Process the payment
         log.info("Processing payment with id {} for user {}", paymentResponse.getPaymentId(),userId);
-        ProcessPaymentThoughMockBank(usedCard.get(), paymentRequest, paymentResponse.getPaymentId());
+        try {
+            String processPaymentResponseNewPaymentStatus = ProcessPaymentThoughMockBank(usedCard.get(), paymentRequest, paymentResponse.getPaymentId()).getPaymentStatus();
+            // update the payment status
+            storedPayment.setPaymentStatus(processPaymentResponseNewPaymentStatus);
+            paymentResponse = toPaymentResponse(storedPayment);
+        } catch (final JsonProcessingException e) {
+            log.warn("Can't parse response from mockBank: {}", e.getMessage());
+        }
         return ResponseEntity.ok(paymentResponse);
     }
 
@@ -87,11 +100,12 @@ public class PaymentGateway {
         return ResponseEntity.ok(paymentResponses);
     }
 
-    private String ProcessPaymentThoughMockBank(final Card paymentCard, final PaymentRequest paymentRequest, final Integer paymentId) {
+    private ProcessPaymentResponse ProcessPaymentThoughMockBank(final Card paymentCard, final PaymentRequest paymentRequest, final Integer paymentId) throws JsonProcessingException {
         ProcessPaymentRequest processPaymentRequest = toProcessPaymentRequest(paymentCard, paymentRequest, paymentId);
         HttpEntity<ProcessPaymentRequest> postRequest = new HttpEntity<>(processPaymentRequest);
         // TODO: Return the response from the mock bank and use in the main method to update the payment record.
         ResponseEntity<String> response = this.restTemplate.postForEntity(URI, postRequest, String.class);
-        return response.getBody();
+
+        return objectMapper.readValue(response.getBody(), ProcessPaymentResponse.class);
     }
 }

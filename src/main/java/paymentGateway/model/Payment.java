@@ -20,7 +20,7 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer paymentId;
     @CreatedDate
-    private Date createdAt;
+    private Date createdAt; // TODO: Add updated at as well
 
     private Integer cardId; // TODO: Explore if it is makes sense to have all IDs as Strings instead
     private String merchantId;
