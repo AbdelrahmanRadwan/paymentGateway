@@ -10,7 +10,7 @@ public class MockBank {
     public static String PAYMENT_STATUS_PROCESSING = "PROCESSING"; // TODO: Should be enum values
 
     @PostMapping("/processPayment")
-    public ResponseEntity<ProcessPaymentResponse> processPayment(final @RequestBody ProcessPaymentRequest ProcessPaymentRequest) { // TODO: Implement with future or promise to get updated status.
+    public ResponseEntity<ProcessPaymentResponse> processPayment(final @RequestBody ProcessPaymentRequest ProcessPaymentRequest) throws InterruptedException {
         // TODO: Implement actual logic with different scenario here instead of hardcoded happy path.
         return ResponseEntity.ok(new ProcessPaymentResponse(ProcessPaymentRequest.getPaymentId(), PAYMENT_STATUS_PROCESSING));
     }

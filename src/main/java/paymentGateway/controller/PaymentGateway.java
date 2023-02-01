@@ -15,6 +15,7 @@ import paymentGateway.repository.PaymentRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.*;
 
 import static paymentGateway.converter.cardConverter.*;
 import static paymentGateway.converter.cardConverter.toCardResponse;
@@ -25,6 +26,7 @@ import static paymentGateway.converter.cardConverter.toCardResponse;
 public class PaymentGateway {
     private final static String PAYMENT_STATUS_INITIALIZED = "INITIALIZED";
     private final static String URI = "http://localhost:8080/mockBank/processPayment";
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @Autowired
     CardRepository cardRepository;
@@ -61,12 +63,18 @@ public class PaymentGateway {
         // Process the payment
         log.info("Processing payment with id {} for user {}", paymentResponse.getPaymentId(),userId);
         try {
-            String processPaymentResponseNewPaymentStatus = ProcessPaymentThoughMockBank(usedCard.get(), paymentRequest, paymentResponse.getPaymentId()).getPaymentStatus();
+            Future<ResponseEntity<String>> processPaymentResponseNewPaymentStatus = ProcessPaymentThoughMockBank(usedCard.get(), paymentRequest, paymentResponse.getPaymentId());
             // update the payment status
-            storedPayment.setPaymentStatus(processPaymentResponseNewPaymentStatus);
-            paymentResponse = toPaymentResponse(storedPayment);
-        } catch (final JsonProcessingException e) {
-            log.warn("Can't parse response from mockBank: {}", e.getMessage());
+            try {
+                String updatedPaymentStatus = objectMapper.readValue(processPaymentResponseNewPaymentStatus.get().getBody(), ProcessPaymentResponse.class).getPaymentStatus();;
+                storedPayment.setPaymentStatus(updatedPaymentStatus);
+                paymentResponse = toPaymentResponse(storedPayment);
+            } catch (InterruptedException | ExecutionException exception) {
+                exception.printStackTrace();
+                log.error("Failed to update the service with the new payment status. Exception {}", exception.getMessage());
+            }
+        } catch (final JsonProcessingException exception) {
+            log.warn("Can't parse response from mockBank: {}", exception.getMessage());
         }
         return ResponseEntity.ok(paymentResponse);
     }
@@ -100,12 +108,14 @@ public class PaymentGateway {
         return ResponseEntity.ok(paymentResponses);
     }
 
-    private ProcessPaymentResponse ProcessPaymentThoughMockBank(final Card paymentCard, final PaymentRequest paymentRequest, final Integer paymentId) throws JsonProcessingException {
+    private Future<ResponseEntity<String>> ProcessPaymentThoughMockBank(final Card paymentCard, final PaymentRequest paymentRequest, final Integer paymentId) throws JsonProcessingException {
         ProcessPaymentRequest processPaymentRequest = toProcessPaymentRequest(paymentCard, paymentRequest, paymentId);
         HttpEntity<ProcessPaymentRequest> postRequest = new HttpEntity<>(processPaymentRequest);
-        // TODO: Return the response from the mock bank and use in the main method to update the payment record.
-        ResponseEntity<String> response = this.restTemplate.postForEntity(URI, postRequest, String.class);
-
-        return objectMapper.readValue(response.getBody(), ProcessPaymentResponse.class);
+        return executorService.submit(new Callable<>() {
+            @Override
+            public ResponseEntity<String> call() throws Exception {
+                return restTemplate.postForEntity(URI, postRequest, String.class);
+            }
+        });
     }
 }
