@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProcessPaymentRequest {
+public class MockBankPaymentRequest {
     private Integer paymentId;
     private String userId;
     private String merchantId;

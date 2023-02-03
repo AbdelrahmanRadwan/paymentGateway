@@ -7,11 +7,11 @@ import paymentGateway.model.*;
 @RestController
 @RequestMapping("/mockBank")
 public class MockBank {
-    public static String PAYMENT_STATUS_PROCESSING = "PROCESSING"; // TODO: Should be enum values
 
     @PostMapping("/processPayment")
-    public ResponseEntity<ProcessPaymentResponse> processPayment(final @RequestBody ProcessPaymentRequest ProcessPaymentRequest) throws InterruptedException {
+    public ResponseEntity<MockBankPaymentResponse> processPayment(final @RequestBody MockBankPaymentRequest MockBankPaymentRequest) throws InterruptedException {
         // TODO: Implement actual logic with different scenario here instead of hardcoded happy path.
-        return ResponseEntity.ok(new ProcessPaymentResponse(ProcessPaymentRequest.getPaymentId(), PAYMENT_STATUS_PROCESSING));
+        Thread.sleep(5000);
+        return ResponseEntity.ok(new MockBankPaymentResponse(MockBankPaymentRequest.getPaymentId(), PaymentStatus.PROCESSING.name()));
     }
 }

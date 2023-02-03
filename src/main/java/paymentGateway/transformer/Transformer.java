@@ -1,11 +1,11 @@
-package paymentGateway.converter;
+package paymentGateway.transformer;
 
 import paymentGateway.model.*;
 
 import java.time.Instant;
 import java.util.Date;
 
-public class cardConverter {
+public class Transformer {
     public static String DISPLAY_CARD_NUMBER_FORMAT = "**** **** **** %s";
 
     public static Card toCard(final CardRequest cardRequest, final String merchantId, final String userId) {
@@ -51,8 +51,8 @@ public class cardConverter {
                 .build();
     }
 
-    public static ProcessPaymentRequest toProcessPaymentRequest(final Card paymentCard, final PaymentRequest paymentRequest, final Integer paymentId) {
-        return ProcessPaymentRequest.builder()
+    public static MockBankPaymentRequest toMockBankPaymentRequest(final Card paymentCard, final PaymentRequest paymentRequest, final Integer paymentId) {
+        return MockBankPaymentRequest.builder()
                 .paymentId(paymentId)
                 .merchantId(paymentCard.getMerchantId())
                 .userId(paymentCard.getUserId())
