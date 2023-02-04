@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -14,4 +16,6 @@ public class CardResponse {
     private String userId;
     private String merchantId;
     private String displayCardNumber;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
 }

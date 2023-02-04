@@ -16,4 +16,5 @@ public class Config {
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }
+
 }

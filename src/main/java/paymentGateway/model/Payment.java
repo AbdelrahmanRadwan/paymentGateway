@@ -1,13 +1,19 @@
 package paymentGateway.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.GenerationType;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 @Data
 @AllArgsConstructor
@@ -19,8 +25,6 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer paymentId;
-    @CreatedDate
-    private Date createdAt; // TODO: Add updated at as well
 
     private Integer cardId; // TODO: Explore if it is makes sense to have all IDs as Strings instead
     private String merchantId;
@@ -28,6 +32,12 @@ public class Payment {
 
     private Double amount;
     private String currency; // TODO: Should be enum value with validation.
-    private String paymentStatus; // TODO: Should be enum value with validation.
+    private PaymentStatus paymentStatus;
+
+    @CreationTimestamp
+    private Timestamp createdAt;
+
+    @UpdateTimestamp
+    private Timestamp updatedAt;
 
 }

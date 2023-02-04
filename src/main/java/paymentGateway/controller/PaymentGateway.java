@@ -16,15 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
+import paymentGateway.model.*;
+
 import paymentGateway.transformer.Transformer;
-import paymentGateway.model.Card;
-import paymentGateway.model.Payment;
-import paymentGateway.model.CardRequest;
-import paymentGateway.model.CardResponse;
-import paymentGateway.model.PaymentRequest;
-import paymentGateway.model.PaymentResponse;
-import paymentGateway.model.MockBankPaymentRequest;
-import paymentGateway.model.MockBankPaymentResponse;
 
 import paymentGateway.repository.CardRepository;
 import paymentGateway.repository.PaymentRepository;
@@ -34,7 +28,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static paymentGateway.model.PaymentStatus.CREATED;
 import static paymentGateway.transformer.Transformer.toCardResponse;
 import static paymentGateway.transformer.Transformer.toCard;
 import static paymentGateway.transformer.Transformer.toPayment;
@@ -99,14 +92,14 @@ public class PaymentGateway {
         }
 
         // Store the payment and generate payment ID.
-        final Payment storedPayment = paymentRepository.save(toPayment(paymentRequest, merchantId, userId, CREATED.name()));
+        final Payment storedPayment = paymentRepository.save(toPayment(paymentRequest, merchantId, userId, PaymentStatus.CREATED));
 
         // Process the payment
         log.info("Processing payment with PaymentId {} for user {} using {}", storedPayment.getPaymentId(), userId, paymentRequest.getCardId());
         CompletableFuture.runAsync(() -> {
             try {
                 ResponseEntity<String> mockBankPaymentResponse = processPaymentThoughMockBank(usedCard.get(), paymentRequest, storedPayment.getPaymentId()).get();
-                String updatedPaymentStatus = objectMapper.readValue(mockBankPaymentResponse.getBody(), MockBankPaymentResponse.class).getPaymentStatus();
+                PaymentStatus updatedPaymentStatus = objectMapper.readValue(mockBankPaymentResponse.getBody(), MockBankPaymentResponse.class).getPaymentStatus();
                 log.info("Updating payment's status with PaymentId {} to {}", storedPayment.getPaymentId(), updatedPaymentStatus);
                 // Update the payment status in the DB.
                 storedPayment.setPaymentStatus(updatedPaymentStatus);

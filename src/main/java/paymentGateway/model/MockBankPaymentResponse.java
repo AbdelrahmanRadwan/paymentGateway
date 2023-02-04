@@ -6,11 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Timestamp;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class MockBankPaymentResponse {
     private Integer paymentId;
-    private String paymentStatus;
+    private PaymentStatus paymentStatus;
+    private Timestamp updatedAt;
 }

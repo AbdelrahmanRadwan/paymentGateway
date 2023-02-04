@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 @Data
 @AllArgsConstructor
@@ -16,6 +16,7 @@ public class PaymentResponse {
     private Integer cardId;
     private String merchantId;
     private String userId;
-    private Date createdAt; // TODO: Add updated at as well
-    private String paymentStatus;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
+    private PaymentStatus paymentStatus;
 }

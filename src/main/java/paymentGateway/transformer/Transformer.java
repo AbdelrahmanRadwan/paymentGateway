@@ -2,8 +2,6 @@ package paymentGateway.transformer;
 
 import paymentGateway.model.*;
 
-import java.time.Instant;
-import java.util.Date;
 
 public class Transformer {
     public static String DISPLAY_CARD_NUMBER_FORMAT = "**** **** **** %s";
@@ -20,22 +18,25 @@ public class Transformer {
                 .displayCardNumber(String.format(DISPLAY_CARD_NUMBER_FORMAT, cardRequest.getCardNumber().substring(cardRequest.getCardNumber().length() - 4)))
                 .build();
     }
+
     public static CardResponse toCardResponse(final Card card) {
         return CardResponse.builder()
                 .cardId(card.getCardId())
                 .userId(card.getUserId())
                 .merchantId(card.getMerchantId())
                 .displayCardNumber(card.getDisplayCardNumber())
+                .createdAt(card.getCreatedAt())
+                .updatedAt(card.getUpdatedAt())
                 .build();
     }
-    public static Payment toPayment(final PaymentRequest paymentRequest, final String merchantId, final String userId, final String paymentStatus) {
+
+    public static Payment toPayment(final PaymentRequest paymentRequest, final String merchantId, final String userId, final PaymentStatus paymentStatus) {
         return Payment.builder()
                 .amount(paymentRequest.getAmount())
                 .currency(paymentRequest.getCurrency())
                 .merchantId(merchantId)
                 .userId(userId)
                 .cardId(paymentRequest.getCardId())
-                .createdAt(Date.from(Instant.now()))
                 .paymentStatus(paymentStatus)
                 .build();
     }
@@ -47,6 +48,7 @@ public class Transformer {
                 .merchantId(payment.getMerchantId())
                 .cardId(payment.getCardId())
                 .createdAt(payment.getCreatedAt())
+                .updatedAt(payment.getUpdatedAt())
                 .paymentStatus(payment.getPaymentStatus())
                 .build();
     }
