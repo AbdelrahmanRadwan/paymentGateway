@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 import java.sql.Timestamp;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PaymentResponse {
     private Integer paymentId;
     private Integer cardId;

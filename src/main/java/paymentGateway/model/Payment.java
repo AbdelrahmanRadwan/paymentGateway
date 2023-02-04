@@ -12,16 +12,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.sql.Timestamp;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "Payment")
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer paymentId;
-    private Integer cardId; // TODO: Explore if it is makes sense to have all IDs as Strings instead
+    private Integer cardId;
     private String merchantId;
     private String userId;
 

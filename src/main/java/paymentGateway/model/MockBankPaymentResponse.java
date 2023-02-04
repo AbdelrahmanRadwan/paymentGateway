@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 import java.sql.Timestamp;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MockBankPaymentResponse {
     private Integer paymentId;
     private PaymentStatus paymentStatus;

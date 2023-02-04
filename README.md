@@ -1,23 +1,28 @@
 # Summary
 
-| Question                                | Answer                                                                                                                                          |
-|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| Time Spent for design and implementation | 2 hours, 47 minutes                                                                                                                             |
-| Technologies                            | Java17, Spring Boot, PostgreSQL, Hibernate                                                                                                      |
-| Features                                | 1. Store Card.<br/> 2. Retrieve Cards information by merchant and user<br/>3. Process payment.<br/>4. Retrieve payments using user and merchant |
-| Run                                     | Docker, Docker Compose, or manual DB creation and app running.                                                                                  |
-| Mock Bank                               | Bank response is mocked through another API running locally that provides promises with the payment status                                      |
-| Main Missing Components                 | 1. Authorization and Authentication roles<br/>2. Data Encryption of `Card` information.<br/>3.Request Validatoin.4                              |
+| Question                                | Answer                                                                                                                                                                                                                                                                                                                                                                                            |
+|-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Time Spent for design and implementation | 2 hours, 47 minutes                                                                                                                                                                                                                                                                                                                                                                               |
+| Technologies                            | Java17, Spring Boot, PostgreSQL, Hibernate                                                                                                                                                                                                                                                                                                                                                        |
+| Features                                | 1. Store Card.<br/> 2. Retrieve Cards information by merchant and userId<br/>3. Process payment.<br/>4. Retrieve payments using user and merchant<br/>5. Pull latest payment status updates                                                                                                                                                                                                       |
+| Run                                     | Docker, Docker Compose, or manual DB creation with app running.                                                                                                                                                                                                                                                                                                                                   |
+| Mock Bank                               | Bank is mocked through another API running locally.                                                                                                                                                                                                                                                                                                                                               |
+| Main Missing Components                 | 1. Authorization and Authentication roles<br/>2. Data Encryption of `Card` information.<br/>3. Request Validatoin<br/>4. Unit and Integration tests.<br/>5. Async communication to allow bank updates coming from the banks.<br/>6. Delete/Update endpoint to update/delete cards.<br/>7. Error handling of different cases in the endpoints.<br/>8. Generate a unique API key for each merchant.<br/> |
 
+----------------------------------------------------------------
+# High Level Async Design
+This is the design I would implement in real life to make sure that the updated payment status is accessible from the merchant easily.
 
-# High Level Design
 ![High Level System Architecture ](documentation/PaymentGatewayWithAsyncPaymentState.png)
 [View on LucidChart](https://lucid.app/lucidchart/94ad9f2d-40c3-4884-af47-e7d424349f3f/edit?viewport_loc=-287%2C-295%2C3675%2C1857%2C0_0&invitationId=inv_8e6fe67f-73b1-4f02-8e67-902d77fd4dba)
 
-For the sake of simplicity, There is no queue integration in the current implementation. Howeverm, there is a simple mocked response that is being sent through a mockBank API.
+For the sake of simplicity, There is no queue integration in the current implementation. However, there is a simple mocked response that is being sent through a mockBank API which is requested through a Callable
+
+
+![High Level System Architecture ](documentation/PaymentGatewayWithSyncPaymentState.png)
+[View on LucidChart](https://lucid.app/lucidchart/2685adfd-376d-420c-b303-27be5d5100f1/edit?invitationId=inv_57e01ce4-229d-44f9-93ff-47e1832b6eea)
 
 ----------------------------------------------------------------
-
 # Motivation
 This is a payment gateway that helps to collect money for merchants, store cards information, and keep track of payments history.
 
@@ -46,29 +51,31 @@ CONTAINER ID   IMAGE      COMMAND                  CREATED         STATUS       
 2. Run the service through running `PaymentGatewayApplication`
 
 ----------------------------------------------------------------
-# API
+# Payment Gateway API
 ## Card Operations
-1. To get the stored cards for a specific user in a specific merchant:
+1. Get the stored cards for a specific user in a specific merchant:
 ```
 GET http://localhost:8080/api/card/merchant/{merchantId}/user/{userId}
 ```
 **Return:**
 ```json
 [
-   {
-      "cardId":3,
-      "userId":"1234",
-      "merchantId":"123",
-      "displayCardNumber":"**** **** **** 8765",
-   }
+    {
+        "cardId":652,
+        "userId":"123",
+        "merchantId":"1234",
+        "displayCardNumber":"**** **** **** 8765",
+        "createdAt":1675531493858,
+        "updatedAt":1675531493859
+    }
 ]
 ```
 
-2. To add a card for a specific user in a specific merchant:
+2. Add a card for a specific user in a specific merchant:
 ```
 POST http://localhost:8080/api/card/merchant/{merchantId}/user/{userId}
 ```
-**With Body:**
+**Request Body:**
 ```json
 {
 	"cardNumber": "1234 5678 4321 8765",
@@ -81,39 +88,51 @@ POST http://localhost:8080/api/card/merchant/{merchantId}/user/{userId}
 **Return:**
 ```json
 {
-    "cardId": 3,
-    "userId": "1234",
-    "merchantId": "123",
-    "displayCardNumber": "**** **** **** 8765"
+    "cardId": 702,
+    "userId": "123",
+    "merchantId": "1234",
+    "displayCardNumber": "**** **** **** 8765",
+    "createdAt": 1675540931248,
+    "updatedAt": 1675540931248
 }
 ```
 ## Payment Operations
-1. To get the payment history for a specific user in a specific merchant:
+1. Get the payment history for a specific user in a specific merchant:
 ```
 GET http://localhost:8080/api/payment/merchant/{merchantId}/user/{userId}
 ```
 **Return:**
 ```json
 [
-  {
-    "paymentId":1,
-    "cardId":121,
-    "merchantId":"123",
-    "userId":"1234",
-    "createdAt":"2023-01-29T23:52:42.341+00:00",
-    "paymentStatus":"PROCESSING"
-  }
+    {
+        "paymentId":652,
+        "cardId":503,
+        "merchantId":"1234",
+        "userId":"123",
+        "paymentStatus":"PROCESSING",
+        "createdAt":1675534050928,
+        "updatedAt":1675534055027
+    },
+    {
+        "paymentId":752,
+        "cardId":652,
+        "merchantId":"1234",
+        "userId":"123",
+        "paymentStatus":"SUCCESSFUL",
+        "createdAt":1675538891083,
+        "updatedAt":1675538905975
+    }
 ]
 ```
 
-2. To add make a payment for a specific user in a specific merchant:
+2. Make a payment for a specific user in a specific merchant using a specific payment card:
 ```
 POST http://localhost:8080/api/payment/merchant/{merchantId}/user/{userId}
 ```
-**With Body:**
+**Request Body:**
 ```json
 {
-  "cardId": 121,
+  "cardId": 652,
   "amount": 550.89,
   "currency": "USD"
 }
@@ -121,44 +140,47 @@ POST http://localhost:8080/api/payment/merchant/{merchantId}/user/{userId}
 **Return:**
 ```json
 {
-  "paymentId": 5,
-  "cardId": 121,
-  "merchantId": "123",
-  "userId": "1234",
-  "createdAt": "2023-01-29T23:52:45.060+00:00",
-  "paymentStatus": "PROCESSING"
+    "paymentId": 802,
+    "cardId": 652,
+    "merchantId": "1234",
+    "userId": "123",
+    "paymentStatus": "PROCESSING",
+    "createdAt": 1675541283655,
+    "updatedAt": 1675541283655
 }
 ```
-This endpoint is making a request to another endpoint to mock the bank, which returns a promise.
 
-## Mock Bank
-The mock bank API is supposed to return a promise or a completableFuture response since it could takek long to process. In the current implementation, it only returns mocked value for simplicity. In real life, I would have done this using a queue system similar to what is described in the high level design above.
-
+3. Get the payment status
+```
+GET http://localhost:8080/api/payment/merchant/{merchantId}/user/{userId}/payment/{paymentId}
+```
+**Return:**
+```json
+{
+    "paymentId":752,
+    "cardId":652,
+    "merchantId":"1234",
+    "userId":"123",
+    "paymentStatus":"SUCCESSFUL",
+    "createdAt":1675538891083,
+    "updatedAt":1675538905975
+}
+```
 ----------------------------------------------------------------
-# Proposed System Architecture
-![High Level System Architecture ](documentation/PaymentGatewayServiceHighlevelArchitecture.png)
-[View System Architecture on LucidChart](https://lucid.app/lucidchart/137bb68a-d4fa-40fe-b990-fe3c348ad6f7/edit?invitationId=inv_a02afc98-2acf-40aa-9979-ddc95813f8f6)
-
-
+# Mock Bank API
+The mock bank API has two endpoints. 
+1. Process a payment
+```
+POST http://localhost:8080/mockBank/processPayment
+```
+2. Get updated payment status
+```
+POST http://localhost:8080/mockBank/paymentStatus/merchant/{merchantId}/user/{userId}/payment/{paymentId}
+```
+----------------------------------------------------------------
+# Sequence Diagram
 ![High Level Sequence Diagram](documentation/PaymentGatewayServiceLogic.png)
+
 [View Sequence Diagram on LucidChart](https://lucid.app/lucidchart/b45fdfc0-2396-407b-888b-40b0e8568c06/edit?viewport_loc=-1638%2C87%2C4018%2C2030%2C0_0&invitationId=inv_ae4b9d5d-d01d-4d17-af0e-00f9a8f9c11a)
 
 ----------------------------------------------------------------
-
-# Missing Features and Future Improvements
-1. Make the request to the mock bank CompletableFuture async call.
-2. Data Validation in the API.
-3. Usage of Enums instead of Strings.
-4. Writing Unit Tests.
-5. Implement Authentication and Authorization
-6. Implement API Key instead of the merchant ID
-7. Introduce encryption logic for the card information
-8. Add more integration tests.
-9. Error handling is missing.
-10. Handle errors through the API
-11. Deploy the service to a cloud service like AWS.
-12. Create a service to mock the bank.
-13. Endpoints to update or delete Card information.
-14. Use a message queue instead of a rest service to communicate with the mock bank, and listen to another queue to update the payment status through the payment gateway service.
-15. Some names are not great, like using paymentRequest to represent paymentRequestBody
-16. Avoid wildcard imports ".*".

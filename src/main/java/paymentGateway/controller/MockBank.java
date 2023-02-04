@@ -1,6 +1,5 @@
 package paymentGateway.controller;
 
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import paymentGateway.model.MockBankPaymentResponse;
@@ -12,7 +11,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/mockBank")
-public class MockBank extends SpringBootServletInitializer {
+public class MockBank  {
 
     @PostMapping("/processPayment")
     public ResponseEntity<MockBankPaymentResponse> processPayment(final @RequestBody MockBankPaymentRequest MockBankPaymentRequest) throws InterruptedException {

@@ -107,7 +107,6 @@ public class PaymentGatewayService {
         }
     }
 
-    @Transactional
     public Optional<PaymentResponse> fetchAndUpdatePaymentStatus(final String merchantId,
                                                                  final String userId,
                                                                  final Payment payment) {

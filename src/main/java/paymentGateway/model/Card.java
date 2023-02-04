@@ -17,10 +17,10 @@ import java.sql.Timestamp;
 
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "Card")
 public class Card {
     @Id

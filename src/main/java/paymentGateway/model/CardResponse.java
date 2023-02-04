@@ -9,8 +9,8 @@ import java.sql.Timestamp;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class CardResponse {
     private Integer cardId;
     private String userId;
