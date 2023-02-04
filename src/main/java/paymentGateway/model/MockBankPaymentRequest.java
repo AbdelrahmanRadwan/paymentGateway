@@ -21,5 +21,5 @@ public class MockBankPaymentRequest {
     private Integer cvv;
 
     private Double amount;
-    private String currency; // TODO: Should be enum value with validation.
+    private String currency; // TODO: Should be an enum value with validation.
 }

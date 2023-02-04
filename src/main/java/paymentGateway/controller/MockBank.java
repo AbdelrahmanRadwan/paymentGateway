@@ -1,5 +1,6 @@
 package paymentGateway.controller;
 
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,12 +15,11 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/mockBank")
-public class MockBank {
+public class MockBank extends SpringBootServletInitializer {
 
     @PostMapping("/processPayment")
     public ResponseEntity<MockBankPaymentResponse> processPayment(final @RequestBody MockBankPaymentRequest MockBankPaymentRequest) throws InterruptedException {
-        // TODO: Implement actual logic with different scenario here instead of hardcoded happy path.
-        Thread.sleep(3000);
+        Thread.sleep(4000); // TODO: Implement actual logic with different scenario here instead of hardcoded happy path.
         return ResponseEntity.ok(new MockBankPaymentResponse(MockBankPaymentRequest.getPaymentId(), PaymentStatus.PROCESSING, new Timestamp(new Date().getTime())));
     }
 }

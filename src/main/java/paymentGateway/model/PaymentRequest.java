@@ -13,5 +13,5 @@ public class PaymentRequest {
 
     private Integer cardId;
     private Double amount;
-    private String currency;
+    private String currency; // TODO: Should be an enum value with validation.
 }

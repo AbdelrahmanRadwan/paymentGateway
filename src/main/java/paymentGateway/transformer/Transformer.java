@@ -47,9 +47,9 @@ public class Transformer {
                 .userId(payment.getUserId())
                 .merchantId(payment.getMerchantId())
                 .cardId(payment.getCardId())
+                .paymentStatus(payment.getPaymentStatus())
                 .createdAt(payment.getCreatedAt())
                 .updatedAt(payment.getUpdatedAt())
-                .paymentStatus(payment.getPaymentStatus())
                 .build();
     }
 

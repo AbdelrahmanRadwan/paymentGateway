@@ -16,7 +16,7 @@ public class PaymentResponse {
     private Integer cardId;
     private String merchantId;
     private String userId;
+    private PaymentStatus paymentStatus;
     private Timestamp createdAt;
     private Timestamp updatedAt;
-    private PaymentStatus paymentStatus;
 }

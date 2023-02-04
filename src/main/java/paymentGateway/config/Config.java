@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
+import paymentGateway.service.PaymentGatewayService;
 
 @Configuration
 public class Config {
@@ -17,4 +18,8 @@ public class Config {
         return new ObjectMapper();
     }
 
+    @Bean
+    public PaymentGatewayService paymentGatewayService() {
+        return new PaymentGatewayService();
+    }
 }

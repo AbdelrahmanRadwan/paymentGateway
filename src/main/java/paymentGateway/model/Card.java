@@ -38,7 +38,6 @@ public class Card {
 
     @CreationTimestamp
     private Timestamp createdAt;
-
     @UpdateTimestamp
     private Timestamp updatedAt;
 }
