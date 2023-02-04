@@ -21,10 +21,12 @@ import java.util.concurrent.ExecutionException;
 
 import static paymentGateway.transformer.Transformer.*;
 
-
 @Slf4j
 public class PaymentGatewayService {
-    private final static String MOCK_BANK_URI = "http://localhost:8080/mockBank/processPayment"; // TODO: https should be used here instead.
+    private final static String MOCK_BANK_BASE_URI = "http://localhost:8080/mockBank/"; // TODO: https should be used here instead.
+    private final static String MOCK_BANK_PROCESS_PAYMENT = MOCK_BANK_BASE_URI + "/processPayment"; // TODO: https should be used here instead.
+    private final static String MOCK_BANK_GET_STATUS = MOCK_BANK_BASE_URI + "/paymentStatus/merchant/%s/user/%s/payment/%d"; // TODO: https should be used here instead.
+
     @Autowired
     private CardRepository cardRepository;
 
@@ -56,8 +58,12 @@ public class PaymentGatewayService {
         return toCardResponse(cardRepository.save(toCard(cardRequest, merchantId, userId)));
     }
 
-    public Optional<PaymentResponse> getPaymentById(final Integer paymentId) {
-        Optional<Payment> paymentResponse = paymentRepository.findById(paymentId);
+    public Optional<Payment> getPaymentById(final Integer paymentId) {
+        return paymentRepository.findById(paymentId);
+    }
+
+    public Optional<PaymentResponse> getPaymentResponseById(final Integer paymentId) {
+        Optional<Payment> paymentResponse = getPaymentById(paymentId);
         if (paymentResponse.isEmpty()) {
             return Optional.empty();
         }
@@ -86,7 +92,7 @@ public class PaymentGatewayService {
 
         // Process the payment
         try {
-            log.info("Processing payment with PaymentId {} for user {} using {}", payment.getPaymentId(), userId, paymentRequest.getCardId());
+            log.info("Processing payment with PaymentId {} for user {} using card {}", payment.getPaymentId(), userId, paymentRequest.getCardId());
             ResponseEntity<String> mockBankPaymentResponse = processPaymentThoughMockBank(payment.getPaymentId(), card, paymentRequest).get();
             PaymentStatus updatedPaymentStatus = objectMapper.readValue(mockBankPaymentResponse.getBody(), MockBankPaymentResponse.class).getPaymentStatus();
             log.info("Updating payment's status with PaymentId {}. New status: {}", payment.getPaymentId(), updatedPaymentStatus);
@@ -96,7 +102,26 @@ public class PaymentGatewayService {
             log.info("Successfully stored updated payment transaction");
             return Optional.of(toPaymentResponse(updatedPayment));
         } catch (final InterruptedException | ExecutionException | JsonProcessingException exception) {
-            log.error("Exception while processing payment with PaymentId {} for user {} using {}", payment.getPaymentId(), userId, paymentRequest.getCardId());
+            log.error("Exception while processing payment with PaymentId {} for user {} using card {}", payment.getPaymentId(), userId, paymentRequest.getCardId());
+            return Optional.empty();
+        }
+    }
+
+    @Transactional
+    public Optional<PaymentResponse> fetchAndUpdatePaymentStatus(final String merchantId,
+                                                                 final String userId,
+                                                                 final Payment payment) {
+        try {
+            ResponseEntity<String> mockBankPaymentResponse = getUpdatedPaymentStatusThoughMockBank(merchantId, userId, payment);
+            PaymentStatus updatedPaymentStatus = objectMapper.readValue(mockBankPaymentResponse.getBody(), MockBankPaymentResponse.class).getPaymentStatus();
+            log.info("Updating payment's status with PaymentId {}. New status: {}", payment.getPaymentId(), updatedPaymentStatus);
+            // Update the payment status in the DB.
+            payment.setPaymentStatus(updatedPaymentStatus);
+            final Payment updatedPayment = paymentRepository.save(payment);
+            log.info("Successfully stored updated payment transaction");
+            return Optional.of(toPaymentResponse(updatedPayment));
+        } catch (final JsonProcessingException exception) {
+            log.error("Exception while processing payment with PaymentId {} for user {}", payment.getPaymentId(), userId);
             return Optional.empty();
         }
     }
@@ -108,6 +133,15 @@ public class PaymentGatewayService {
         MockBankPaymentRequest mockBankPaymentRequest = toMockBankPaymentRequest(paymentCard, paymentRequest, paymentId);
         HttpEntity<MockBankPaymentRequest> postRequest = new HttpEntity<>(mockBankPaymentRequest, headers);
 
-        return CompletableFuture.supplyAsync(() -> restTemplate.postForEntity(MOCK_BANK_URI, postRequest, String.class));
+        return CompletableFuture.supplyAsync(() -> restTemplate.postForEntity(MOCK_BANK_PROCESS_PAYMENT, postRequest, String.class));
+    }
+
+    private ResponseEntity<String> getUpdatedPaymentStatusThoughMockBank(final String merchantId,
+                                                                         final String userId,
+                                                                         final Payment payment) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        return restTemplate.exchange(String.format(MOCK_BANK_GET_STATUS, merchantId, userId, payment.getPaymentId()), HttpMethod.GET, entity, String.class);
     }
 }

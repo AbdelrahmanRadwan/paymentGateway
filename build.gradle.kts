@@ -20,6 +20,10 @@ repositories {
 
 dependencies {
 	implementation ("org.springframework.boot:spring-boot-starter-data-jpa")
+	// implementation ("org.springframework.security:spring-security-core") // TODO: Use the security library to handle authentication and authorization
+	// implementation ("org.springframework.security:spring-security-config") // TODO: Use the security library to handle authentication and authorization
+	// implementation ("org.springframework.security:spring-security-web") // TODO: Use the security library to handle authentication and authorization
+
 	implementation ("org.springframework.data:spring-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.postgresql:postgresql")

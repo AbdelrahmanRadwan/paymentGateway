@@ -1,11 +1,13 @@
 # Summary
 
+| Question                                | Answer                                                                                                                                          |
+|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
 | Time Spent for design and implementation | 2 hours, 47 minutes                                                                                                                             |
-|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| Technologies                             | Java17, Spring Boot, PostgreSQL                                                                                                                 |
-| Features                                 | 1. Store Card.<br/> 2. Retrieve Cards information by merchant and user<br/>3. Process payment.<br/>4. Retrieve payments using user and merchant |
-| Run                                      | Docker, Docker Compose, or manual DB creation and app running.                                                                                  |
-| Mock Bank                                | Bank response is mocked through another API running locally that provides promises with the payment status                                      |
+| Technologies                            | Java17, Spring Boot, PostgreSQL, Hibernate                                                                                                      |
+| Features                                | 1. Store Card.<br/> 2. Retrieve Cards information by merchant and user<br/>3. Process payment.<br/>4. Retrieve payments using user and merchant |
+| Run                                     | Docker, Docker Compose, or manual DB creation and app running.                                                                                  |
+| Mock Bank                               | Bank response is mocked through another API running locally that provides promises with the payment status                                      |
+| Main Missing Components                 | 1. Authorization and Authentication roles<br/>2. Data Encryption of `Card` information.<br/>3.Request Validatoin.4                              |
 
 
 # High Level Design

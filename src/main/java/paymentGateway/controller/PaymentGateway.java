@@ -3,15 +3,9 @@ package paymentGateway.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -27,7 +21,7 @@ import static paymentGateway.transformer.Transformer.toCardResponse;
 @Slf4j
 @RestController
 @RequestMapping("/api")
-public class PaymentGateway extends SpringBootServletInitializer {
+public class PaymentGateway {
 
     @Autowired
     private PaymentGatewayService paymentGatewayService;
@@ -41,7 +35,7 @@ public class PaymentGateway extends SpringBootServletInitializer {
                                                       final @PathVariable String userId,
                                                       final @PathVariable Integer paymentId) {
         // TODO: Add Authorization check based on the merchant and user.
-        Optional<PaymentResponse> paymentResponse = paymentGatewayService.getPaymentById(paymentId);
+        Optional<PaymentResponse> paymentResponse = paymentGatewayService.getPaymentResponseById(paymentId);
         if (paymentResponse.isEmpty()) {
             log.error("Could not find payment with id {}", paymentId);
             return ResponseEntity.badRequest().build();
@@ -56,10 +50,30 @@ public class PaymentGateway extends SpringBootServletInitializer {
         return ResponseEntity.ok(paymentGatewayService.getAllPaymentsByMerchantAndUser(merchantId, userId));
     }
 
+    @GetMapping("/payment/merchant/{merchantId}/user/{userId}/payment/{paymentId}/status")
+    public ResponseEntity<PaymentResponse> retrieveUpdatedPaymentStatus(final @PathVariable String merchantId,
+                                                                        final @PathVariable String userId,
+                                                                        final @PathVariable Integer paymentId) {
+        // TODO: Add Authorization check based on the merchant and user.
+        // TODO: Avoid making changes in a GET endpoint.
+        Optional<Payment> payment = paymentGatewayService.getPaymentById(paymentId);
+        if (payment.isEmpty()) {
+            log.error("Could not find payment with id {}", paymentId);
+            return ResponseEntity.badRequest().build();
+        }
+        Optional<PaymentResponse> paymentResponse = paymentGatewayService.fetchAndUpdatePaymentStatus(merchantId, userId, payment.get());
+        if (paymentResponse.isEmpty()) {
+            log.error("Could not process payment {}", paymentId);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(paymentResponse.get());
+    }
+
     @PostMapping("/payment/merchant/{merchantId}/user/{userId}")
     public DeferredResult<ResponseEntity<PaymentResponse>> processPayment(final @PathVariable String merchantId,
                                                                           final @PathVariable String userId,
                                                                           final @RequestBody PaymentRequest paymentRequest) {
+        // TODO: Add Authorization check based on the merchant and user.
         DeferredResult<ResponseEntity<PaymentResponse>> deferredPaymentResponse = new DeferredResult<>();
         // Fetch Payment Card.
         Optional<Card> usedCard = paymentGatewayService.getCardById(paymentRequest.getCardId());
@@ -71,6 +85,7 @@ public class PaymentGateway extends SpringBootServletInitializer {
         // Process the payment
         final Optional<PaymentResponse> paymentResponse = paymentGatewayService.storeAndProcessPayment(merchantId, userId, usedCard.get(), paymentRequest);
         if (paymentResponse.isEmpty()) {
+            log.error("Could not process payment using cardId {}", paymentRequest.getCardId());
             deferredPaymentResponse.setResult(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
         } else {
             deferredPaymentResponse.setResult(ResponseEntity.ok(paymentResponse.get()));
