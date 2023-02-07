@@ -175,7 +175,7 @@ POST http://localhost:8080/mockBank/processPayment
 ```
 2. Get updated payment status
 ```
-POST http://localhost:8080/mockBank/paymentStatus/merchant/{merchantId}/user/{userId}/payment/{paymentId}
+GET http://localhost:8080/mockBank/paymentStatus/merchant/{merchantId}/user/{userId}/payment/{paymentId}
 ```
 ----------------------------------------------------------------
 # Sequence Diagram
